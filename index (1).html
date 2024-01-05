@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Link to Font Awesome stylesheet -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+        integrity="sha384-oS3vJqKlVg5DLOcRznKc5K5l9lP5X5cP1G1NlxCY7n2U+A5zZ2c+1I5ZX9+EP06" crossorigin="anonymous">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Question and Pool Management</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #000000;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        html {
+            height: 100%;
+            margin: 0;
+            background-color: white;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .left-box {
+            flex-grow: 1;
+            background-color: white;
+            padding: 20px;
+            margin: 10px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .right-box {
+            background-color: grey;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            margin: 10px;
+            border: 1px solid #ddd;
+            flex-grow: 1;
+            /* This will make the box take up the space according to its content */
+            overflow-y: auto;
+        }
+
+        .question-container {
+            border-bottom: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        .question-container .question,
+        .question-container .type,
+        .question-container .answer {
+            margin-bottom: 10px;
+        }
+
+        .right-box .question-container {
+            color: white;
+            /* Since the right box has a black background */
+        }
+
+
+        h1,
+        h2 {
+            color: #333;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        input[type="text"],
+        select,
+        input[type="checkbox"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="submit"] {
+            background-color: #4caf50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+
+        .multiple-choice-options,
+        .checkbox-options {
+            display: none;
+        }
+
+        /* Style for vertical choices */
+        .vertical-choices label {
+            display: block;
+            margin-bottom: 5px;
+            /* Adjust the margin to your preference */
+        }
+
+        /* Custom styling for the search container and clear button */
+        .search-container {
+            position: relative;
+        }
+
+        .clear-icon {
+            position: absolute;
+            top: 35%;
+            right: 10px;
+            transform: translateY(-50%);
+            cursor: pointer;
+            display: none;
+            /* Initially hide the clear button */
+        }
+
+        /* Show the clear button when the search input is not empty */
+        #search:not(:placeholder-shown)+.clear-icon {
+            display: block;
+        }
+
+        .search-results-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #ccc;
+            border-top: none;
+            max-height: 150px;
+            overflow-y: auto;
+            position: absolute;
+            width: calc(100% - 22px);
+            /* Adjust for padding and borders */
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .resultItem {
+            padding: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .resultItem:hover {
+            background-color: #f1f1f1;
+        }
+
+        .hovered {
+            background-color: #f1f1f1;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+        }
+
+        .rating label {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="left-box">
+            <form id="searchForm">
+                <label for="search">Search:</label>
+                <div class="search-container">
+                    <input type="text" id="search" name="search" autocomplete="off">
+                    <span id="clearSearch" class="clear-icon">&times;</span>
+                </div>
+                <div id="searchResults"></div>
+            </form>
+
+
+            <!-- Rating Input with Font Awesome Circle Icons and Numbers -->
+            <div id="ratingContainer">
+                <label for="rating">How is your day? Rate from 1 to 10:</label>
+                <div class="rating">
+                    <!-- Font Awesome icons for rating circles and numbers -->
+                    <input type="radio" id="star10" name="rating" value="10">
+                    <label for="star10"><i class="fas fa-circle"></i> 10</label>
+
+                    <input type="radio" id="star9" name="rating" value="9">
+                    <label for="star9"><i class="fas fa-circle"></i> 9</label>
+
+                    <input type="radio" id="star8" name="rating" value="8">
+                    <label for="star8"><i class="fas fa-circle"></i> 8</label>
+
+                    <input type="radio" id="star7" name="rating" value="7">
+                    <label for="star7"><i class="fas fa-circle"></i> 7</label>
+
+                    <input type="radio" id="star6" name="rating" value="6">
+                    <label for="star6"><i class="fas fa-circle"></i> 6</label>
+
+                    <input type="radio" id="star5" name="rating" value="5">
+                    <label for="star5"><i class="fas fa-circle"></i> 5</label>
+
+                    <input type="radio" id="star4" name="rating" value="4">
+                    <label for="star4"><i class="fas fa-circle"></i> 4</label>
+
+                    <input type="radio" id="star3" name="rating" value="3">
+                    <label for="star3"><i class="fas fa-circle"></i> 3</label>
+
+                    <input type="radio" id="star2" name="rating" value="2">
+                    <label for="star2"><i class="fas fa-circle"></i> 2</label>
+
+
+
+                    <input type="radio" id="star1" name="rating" value="1">
+                    <label for="star1"><i class="fas fa-circle"></i> 1</label>
+                </div>
+            </div>
+
+
+
+            <!-- Question Form -->
+            <h2>Ask Questions</h2>
+            <form action="submit_question_to_database.php" method="post" id="questionForm">
+
+                <!-- Three dropdowns for selecting question type -->
+                <label for="questionType">Question Type:</label>
+                <select id="questionType" name="questionType" onchange="updateQuestionForm()">
+                    <option value="text">Text</option>
+                    <option value="multiple_choice">Multiple Choice</option>
+                    <option value="checkbox">Checkbox</option>
+                </select>
+
+                <!-- Categories Header -->
+                <h2>Categories</h2>
+                <!-- Categories Input -->
+                <label for="categories">Categories:</label>
+                <input type="text" id="categories" name="categories" placeholder="Enter categories">
+
+                <h2>Question Text</h2>
+                <label for="questionText">Question Text:</label>
+                <input type="text" id="questionText" name="questionText" placeholder="Enter your question">
+
+
+
+                <!-- Additional options for text type (answer textbox) -->
+                <div class="additional-options" id="answerTextOption">
+                    <label for="answerText">Answer Text:</label>
+                    <input type="text" id="answerText" name="answerText" placeholder="Enter the answer">
+                </div>
+
+                <!-- Additional options for multiple choice -->
+                <div class="multiple-choice-options" id="multipleChoiceOptions">
+                    <label for="choice1" class="vertical-choices">Choice 1:</label>
+                    <input type="text" id="choice1" name="choice1" placeholder="Enter choice 1">
+                    <label for="choice2" class="vertical-choices">Choice 2:</label>
+                    <input type="text" id="choice2" name="choice2" placeholder="Enter choice 2">
+                    <label for="choice3" class="vertical-choices">Choice 3:</label>
+                    <input type="text" id="choice3" name="choice3" placeholder="Enter choice 3">
+                    <label for="choice4" class="vertical-choices">Choice 4:</label>
+                    <input type="text" id="choice4" name="choice4" placeholder="Enter choice 4">
+                </div>
+
+                <!-- Additional options for checkbox -->
+                <div class="checkbox-options" id="checkboxOptions">
+                    <label for="checkbox1" class="vertical-choices">Checkbox 1:</label>
+                    <input type="text" id="checkbox1" name="checkbox1" placeholder="Enter checkbox 1">
+                    <label for="checkbox2" class="vertical-choices">Checkbox 2:</label>
+                    <input type="text" id="checkbox2" name="checkbox2" placeholder="Enter checkbox 2">
+                    <label for="checkbox3" class="vertical-choices">Checkbox 3:</label>
+                    <input type="text" id="checkbox3" name="checkbox3" placeholder="Enter checkbox 3">
+                    <label for="checkbox4" class="vertical-choices">Checkbox 4:</label>
+                    <input type="text" id="checkbox4" name="checkbox4" placeholder="Enter checkbox 4">
+                </div>
+
+                <!-- Submit Button -->
+                <input type="submit" value="Create">
+
+
+
+                <!-- Add Button -->
+                <input type="button" value="Add" onclick="addQuestion()">
+
+
+            </form>
+        </div>
+        <div class="right-box" id="addedQuestions">
+            function createQuestion() {
+            // This assumes you have a form with inputs for the question, type, and answer
+            var question = document.getElementById('questionInput').value;
+            var type = document.getElementById('typeInput').value; // Adjust the ID as per your form
+            var answer = document.getElementById('answerInput').value; // Adjust the ID as per your form
+
+            var questionContainer = document.createElement('div');
+            questionContainer.classList.add('question-container');
+            questionContainer.innerHTML = `
+            <div class="question">Question: ${question}</div>
+            <div class="type">Type: ${type}</div>
+            <div class="answer">Answer: ${answer}</div>
+            `;
+
+            var addedQuestions = document.getElementById('addedQuestions');
+            addedQuestions.appendChild(questionContainer);
+            }
+        </div>
+        <h1>Search or Create Questions</h1>
+
+        <!-- Search Box with Custom Clear Button -->
+
+
+        <script>
+
+            function addQuestion() {
+                // Add your logic for handling the "Add" button click here
+                alert('Add button clicked!');
+            }
+
+
+
+
+            $(document).ready(function () {
+                $('#search').on('input', function () {
+                    var searchInput = $(this).val();
+
+                    if (searchInput.length >= 1) {
+                        // Call a function to send an AJAX request to the server with the search input
+                        // and update the searchResults div with the response.
+                        $.ajax({
+                            type: 'GET',
+                            url: 'search.php',
+                            data: { search: searchInput },
+                            success: function (data) {
+                                // Update the search results
+                                updateSearchResults(JSON.parse(data));
+                            },
+                            error: function () {
+                                console.error('Error in AJAX request');
+                            }
+                        });
+                    } else {
+                        // Clear the search results if the input is empty
+                        $('#searchResults').empty();
+                    }
+                });
+
+                $('#clearSearch').on('click', function () {
+                    $('#search').val('').focus();
+                    $('#searchResults').empty();
+                });
+                function updateSearchResults(results) {
+                    var resultsContainer = $('#searchResults');
+                    resultsContainer.empty();
+
+                    // Display each result as a list item
+                    var resultList = $('<ul class="search-results-list"></ul>');
+                    for (var i = 0; i < results.length; i++) {
+                        var resultItem = $('<li class="resultItem">' + results[i] + '</li>');
+                        resultList.append(resultItem);
+                    }
+
+                    // Append the list to the container
+                    resultsContainer.append(resultList);
+
+                    // Add hover effect for list items
+                    resultList.on('mouseenter', 'li', function () {
+                        $(this).addClass('hovered');
+                    }).on('mouseleave', 'li', function () {
+                        $(this).removeClass('hovered');
+                    });
+
+                    // Add click event handler for result items
+                    resultList.on('click', 'li', function () {
+                        var selectedResult = $(this).text();
+                        selectResult(selectedResult);
+                    });
+                }
+
+                function selectResult(selectedResult) {
+                    // Handle the selected result, e.g., fill the search input or redirect
+                    alert('Selected Result: ' + selectedResult);
+                    $('#search').val(selectedResult);
+                    $('#searchResults').empty(); // Clear the results container
+                }
+            });
+            function updateQuestionForm() {
+                var questionType = document.getElementById("questionType").value;
+                var answerTextOptions = document.getElementById("answerTextOption");
+                var multipleChoiceOptions = document.getElementById("multipleChoiceOptions");
+                var checkboxOptions = document.getElementById("checkboxOptions");
+
+                // Show/hide additional options based on the selected question type
+                answerTextOptions.style.display = questionType === "text" ? "block" : "none";
+                multipleChoiceOptions.style.display = questionType === "multiple_choice" ? "block" : "none";
+                checkboxOptions.style.display = questionType === "checkbox" ? "block" : "none";
+            }
+            function createQuestion() {
+                var question = document.getElementById('questionInput').value;
+                var answer = document.getElementById('answerInput').value;
+                var questionType = /* Retrieve your question type value here */
+
+                var displayDiv = document.getElementById('addedQuestions');
+                displayDiv.innerHTML += '<p>Question: ' + question + '</p>';
+                displayDiv.innerHTML += '<p>Type: ' + questionType + '</p>';
+                displayDiv.innerHTML += '<p>Answer: ' + answer + '</p>';
+            }
+
+        </script>
+    </div>
+
+</body>
+
+</html>
